@@ -1,34 +1,66 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../firebase_options.dart';
+import 'locator.dart';
+import 'navigation_service.dart';
 
-/*Install Firebase CLI here
-run dart pub global activate flutterfire_cli in your Flutter project
-run flutterfire configure*/
+
+/// Add below line in main function
+/// Future<void> main() async {
+///   await initializeFCM();
+///  setupLocator();}
+
+///----------------------Initialize FCM in root widget-------------------------
+/// final FcmService fcmService = locator<FcmService>();
+///  fcmService.getFCM();
+
+
+///------------Add Navigator in Meterial app------------------
+///   MaterialApp(
+///      title: 'Notifications',
+///       onGenerateRoute: _routes(),//------------for routing
+///       navigatorKey: locator<NavigationService>().navigatorKey,
+
+
 late AndroidNotificationChannel channel;
 bool isFlutterLocalNotificationsInitialized = false;
 
-/// Initialize the [FlutterLocalNotificationsPlugin] package.
 late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
+Future initializeFCM() async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  if (!kIsWeb) {
+    await setupFlutterNotifications();
+  }
+}
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
-      options: const FirebaseOptions(
-          appId: 'fcm.apns.com.fcm_apns',
-          apiKey: 'AIzaSyDLTjpUF4lKfCDViqss3f_XETBrfqwflCg',
-          messagingSenderId: '300696660269',
-          projectId: 'fcmapns-dd63b'));
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await setupFlutterNotifications();
-  showFlutterNotification(message);
+  // showFlutterNotification(message);
   print('Handling a background message ${message.messageId}');
 }
+void  onClickNotification(String? payload)  {
+  try {
+    locator<NavigationService>().navigateTo("/landingPage", payload);
+  } catch (e) {
+    if (kDebugMode) {
+      print("error---------$e");
+    }
+  }
 
+}
 Future<void> setupFlutterNotifications() async {
   if (isFlutterLocalNotificationsInitialized) {
     return;
@@ -39,17 +71,24 @@ Future<void> setupFlutterNotifications() async {
     description: 'This channel is used for important notifications.',
     importance: Importance.high,
   );
-
   flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-  /// Create an Android Notification Channel.
-  ///
-  /// We use this channel in the `AndroidManifest.xml` file to override the
-  /// default FCM channel to enable heads up notifications.
+  var androidSettings = const AndroidInitializationSettings('launcher_icon');
+  var iOSSettings = const IOSInitializationSettings(
+    requestSoundPermission: false,
+    requestBadgePermission: false,
+    requestAlertPermission: false,
+  );
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
+
+  var initSettings =
+      InitializationSettings(android: androidSettings, iOS: iOSSettings);
+  await flutterLocalNotificationsPlugin.initialize(initSettings,
+      onSelectNotification: (String? payload) async {
+    onClickNotification(payload);
+  });
 
   /// Update the iOS foreground notification presentation options to allow
   /// heads up notifications.
@@ -66,6 +105,8 @@ void showFlutterNotification(RemoteMessage message) {
   AndroidNotification? android = message.notification?.android;
   if (notification != null && android != null && !kIsWeb) {
     flutterLocalNotificationsPlugin.show(
+
+      payload: jsonEncode(message.notification!.body),
       notification.hashCode,
       notification.title,
       notification.body,
@@ -83,9 +124,21 @@ void showFlutterNotification(RemoteMessage message) {
   }
 }
 
-Future initialiseFCM(BuildContext context) async {
-  FirebaseMessaging.onMessage.listen(showFlutterNotification);
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    print('A new onMessageOpenedApp event was published!');
-  });
+class FcmService {
+  final NavigationService _navigationService = locator<NavigationService>();
+  Future getFCM() async {
+    FirebaseMessaging.onMessage.listen(showFlutterNotification);
+    if (Platform.isIOS) {
+      FirebaseMessaging.instance.requestPermission();
+    }
+    FirebaseMessaging.instance.subscribeToTopic("topic");
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print("message clicked");
+      _serialiseAndNavigate(message);
+    });
+  }
+
+  Future<void> _serialiseAndNavigate(RemoteMessage message) async {
+  await  _navigationService.navigateTo("/landingPage", message);
+  }
 }
