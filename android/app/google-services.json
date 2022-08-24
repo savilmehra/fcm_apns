@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "300696660269",
+    "project_id": "fcmapns-dd63b",
+    "storage_bucket": "fcmapns-dd63b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300696660269:android:082eaa96e07ee199324ba4",
+        "android_client_info": {
+          "package_name": "fcm.apns.com.fcm_apns"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "300696660269-st7vhjj1kdbifr59l1je7mklkf72tq1o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLTjpUF4lKfCDViqss3f_XETBrfqwflCg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "300696660269-st7vhjj1kdbifr59l1je7mklkf72tq1o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
