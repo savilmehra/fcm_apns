@@ -2,14 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:fcm_apns/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../firebase_options.dart';
-import 'locator.dart';
-import 'navigation_service.dart';
+
+import '../../firebase_options.dart';
+
 
 
 /// Add below line in main function
@@ -21,12 +22,6 @@ import 'navigation_service.dart';
 /// final FcmService fcmService = locator<FcmService>();
 ///  fcmService.getFCM();
 
-
-///------------Add Navigator in Meterial app------------------
-///   MaterialApp(
-///      title: 'Notifications',
-///       onGenerateRoute: _routes(),//------------for routing
-///       navigatorKey: locator<NavigationService>().navigatorKey,
 
 
 late AndroidNotificationChannel channel;
@@ -53,7 +48,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 void  onClickNotification(String? payload)  {
   try {
-    locator<NavigationService>().navigateTo("/landingPage", payload);
+    router.to(Routes.countries,extra: payload);
   } catch (e) {
     if (kDebugMode) {
       print("error---------$e");
@@ -96,6 +91,8 @@ Future<void> setupFlutterNotifications() async {
     alert: true,
     badge: true,
     sound: true,
+
+
   );
   isFlutterLocalNotificationsInitialized = true;
 }
@@ -125,7 +122,7 @@ void showFlutterNotification(RemoteMessage message) {
 }
 
 class FcmService {
-  final NavigationService _navigationService = locator<NavigationService>();
+
   Future getFCM() async {
     FirebaseMessaging.onMessage.listen(showFlutterNotification);
     if (Platform.isIOS) {
@@ -139,6 +136,6 @@ class FcmService {
   }
 
   Future<void> _serialiseAndNavigate(RemoteMessage message) async {
-  await  _navigationService.navigateTo("/landingPage", message);
+    router.to(Routes.countries,extra: message);
   }
 }
