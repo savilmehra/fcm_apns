@@ -12,8 +12,7 @@ import 'asset_feature_provider.dart';
 
 import 'config/fcm_module/fcm_service.dart';
 import 'locator.dart';
-import 'firebase_options.dart';
-const landingPage = '/landingPage';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeFCM();
@@ -99,23 +98,4 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class LandingPage extends StatefulWidget {
-  const LandingPage({Key? key}) : super(key: key);
 
-  @override
-  State<LandingPage> createState() => _LandingPageState();
-}
-
-class _LandingPageState extends State<LandingPage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("LandingPage"),
-      ),
-      body: const Center(
-        child: Text("LandingPage on notification click"),
-      ),
-    );
-  }
-}
